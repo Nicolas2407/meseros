@@ -78,6 +78,31 @@ function eliminar(i) {
 
   pedido.value.splice(i, 1);
 }
+function actualizarCantidad(event, producto) {
+
+  let nuevaCantidad = parseInt(event.target.value) || 1;
+
+  let platoOriginal = platos.value.find(p => p.id === producto.id);
+
+  // diferencia entre cantidad anterior y nueva
+  let diferencia = nuevaCantidad - producto.cantidad;
+
+  // si quiere aumentar más de lo disponible
+  if (diferencia > platoOriginal.stock) {
+
+    alert("No hay suficiente stock disponible");
+
+    event.target.value = producto.cantidad;
+
+    return;
+  }
+
+  // actualizar stock
+  platoOriginal.stock -= diferencia;
+
+  // actualizar cantidad
+  producto.cantidad = nuevaCantidad;
+}
 
 function total() {
   return pedido.value.reduce((sum, p) => sum + p.precio * (parseInt(p.cantidad) || 0), 0);
@@ -85,6 +110,7 @@ function total() {
 
 // PDF
 function generarFactura() {
+
   if (pedido.value.length === 0) {
     mostrarAlerta.value = true;
     setTimeout(() => mostrarAlerta.value = false, 3000);
@@ -93,6 +119,36 @@ function generarFactura() {
 
   const doc = new jsPDF();
 
+  // COLORES
+  const rojo = [255, 59, 59];
+  const naranja = [255, 122, 24];
+  const oscuro = [20, 23, 29];
+
+  // FONDO HEADER
+  doc.setFillColor(...oscuro);
+  doc.rect(0, 0, 210, 40, "F");
+
+  // TÍTULO
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(24);
+
+  doc.setTextColor(...rojo);
+  doc.text(" BRASA VIVA", 14, 20);
+
+  doc.setFontSize(11);
+  doc.setTextColor(255,255,255);
+
+  doc.text("Factura de compra", 14, 30);
+
+  // FECHA
+  const fecha = new Date().toLocaleString();
+
+  doc.setFontSize(10);
+  doc.setTextColor(120);
+
+  doc.text("Fecha: " + fecha, 14, 50);
+
+  // TABLA
   const rows = pedido.value.map(p => [
     p.nombre,
     p.cantidad,
@@ -101,12 +157,66 @@ function generarFactura() {
   ]);
 
   autoTable(doc, {
-    head: [["Producto", "Cant.", "Precio", "Total"]],
-    body: rows
+    startY: 60,
+
+    head: [["Producto", "Cant.", "Precio", "Subtotal"]],
+
+    body: rows,
+
+    theme: "grid",
+
+    headStyles: {
+      fillColor: rojo,
+      textColor: 255,
+      fontStyle: "bold",
+      halign: "center"
+    },
+
+    bodyStyles: {
+      fillColor: [245,245,245],
+      textColor: 30
+    },
+
+    alternateRowStyles: {
+      fillColor: [230,230,230]
+    },
+
+    styles: {
+      fontSize: 11,
+      cellPadding: 4,
+      halign: "center",
+      valign: "middle"
+    }
   });
 
-  doc.text("TOTAL: $" + total(), 140, doc.lastAutoTable.finalY + 10);
-  doc.save("factura.pdf");
+  // TOTAL
+  const finalY = doc.lastAutoTable.finalY + 15;
+
+  doc.setFillColor(...naranja);
+
+  doc.roundedRect(120, finalY - 8, 70, 15, 3, 3, "F");
+
+  doc.setFontSize(16);
+  doc.setTextColor(255,255,255);
+
+  doc.text("TOTAL: $" + total(), 128, finalY + 2);
+
+  // MENSAJE FINAL
+  doc.setFontSize(11);
+
+  doc.setTextColor(100);
+
+  doc.text(
+    "Gracias por tu compra :)",
+    14,
+    finalY + 25
+  );
+
+  // GUARDAR PDF
+  doc.save("Factura_Brasa_Viva.pdf");
+
+  // LIMPIAR PEDIDO
+  pedido.value = [];
 }
 </script>
 
@@ -115,15 +225,11 @@ function generarFactura() {
     <h1>🔥BRASA VIVA</h1>
 
     <div class="categorias">
-  <button
-    v-for="cat in categorias"
-    :key="cat"
-    @click="categoriaSeleccionada = cat"
-    :class="{ activa: categoriaSeleccionada === cat }"
-  >
-    {{ cat }}
-  </button>
-</div>
+      <button v-for="cat in categorias" :key="cat" @click="categoriaSeleccionada = cat"
+        :class="{ activa: categoriaSeleccionada === cat }">
+        {{ cat }}
+      </button>
+    </div>
 
     <!-- 🔥 ARREGLO AQUÍ -->
     <div class="platos">
@@ -133,8 +239,16 @@ function generarFactura() {
         <p>{{ plato.descripcion }}</p>
         <small>{{ plato.ingredientes }}</small>
         <p class="precio">${{ plato.precio }}</p>
-        <p class="stock">Disponibles: {{ plato.stock }}</p>
-        <button @click="agregar(plato)" :disabled="plato.stock <= 0">{{ plato.stock <= 0 ? "Agotado" : "Agregar" }}</button>
+        <div class="stock-control">
+
+          <p class="stock">
+            Disponibles: {{ plato.stock }}
+          </p>
+
+          <button class="stock-btn" @click="plato.stock++">+</button>
+        </div>
+        <button @click="agregar(plato)" :disabled="plato.stock <= 0">{{ plato.stock <= 0 ? "Agotado" : "Agregar"
+        }}</button>
       </div>
     </div>
 
@@ -146,7 +260,7 @@ function generarFactura() {
       <div v-if="pedido.length > 0">
         <div v-for="(p, i) in pedido" :key="i" class="item">
           <span>{{ p.nombre }}</span>
-          <input type="number" v-model="p.cantidad" min="1" />
+          <input type="number" :value="p.cantidad" min="1" @input="actualizarCantidad($event, p)" />
           <span>${{ p.precio * p.cantidad }}</span>
           <button @click="eliminar(i)">❌</button>
         </div>
@@ -154,7 +268,7 @@ function generarFactura() {
 
       <h3>Total: ${{ total() }}</h3>
 
-      <button @click="generarFactura">📄 Descargar Factura</button>
+      <button @click="generarFactura">🛒Finalizar compra</button>
     </div>
 
     <div v-if="mostrarAlerta" class="alerta">
@@ -183,7 +297,7 @@ h1 {
 }
 
 /* SELECT CATEGORÍA */
-.categorias{
+.categorias {
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -191,7 +305,7 @@ h1 {
   gap: 10px;
   margin-bottom: 30px;
 
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(10px);
 
   padding: 12px;
@@ -201,16 +315,16 @@ h1 {
 }
 
 /* SCROLL BONITO */
-.categorias::-webkit-scrollbar{
+.categorias::-webkit-scrollbar {
   height: 6px;
 }
 
-.categorias::-webkit-scrollbar-thumb{
+.categorias::-webkit-scrollbar-thumb {
   background: #ff3b3b;
   border-radius: 10px;
 }
 
-.categorias button{
+.categorias button {
   flex: 1;
   min-width: 160px;
 
@@ -230,14 +344,14 @@ h1 {
 }
 
 /* HOVER */
-.categorias button:hover{
-  background: rgba(255,255,255,0.1);
+.categorias button:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* ACTIVO */
-.categorias .activa{
-  background: linear-gradient(90deg,#ff3b3b,#ff7a18);
-  box-shadow: 0 5px 15px rgba(255,80,80,0.4);
+.categorias .activa {
+  background: linear-gradient(90deg, #ff3b3b, #ff7a18);
+  box-shadow: 0 5px 15px rgba(255, 80, 80, 0.4);
 }
 
 /* GRID PRODUCTOS */
@@ -326,6 +440,7 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 15px;
   background: #0f1115;
   padding: 10px;
   border-radius: 10px;
@@ -341,12 +456,29 @@ h1 {
 
 /* BOTÓN ELIMINAR */
 .item button {
-  background: transparent;
+  width: 42px;
+  height: 42px;
+
+  border-radius: 12px;
+
   border: none;
-  color: red;
+
+  background: rgba(255, 59, 59, 0.12);
+
+  color: #ff4b4b;
+
   font-size: 18px;
   cursor: pointer;
+
+  transition: 0.25s;
 }
+
+.item button:hover {
+  background: #ff3b3b;
+  color: white;
+  transform: scale(1.08);
+}
+
 
 /* TOTAL */
 .pedido h3 {
@@ -356,15 +488,38 @@ h1 {
 
 /* BOTÓN FACTURA */
 .pedido button {
-  margin-top: 10px;
-  width: 100%;
+  width: fit-content;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   background: linear-gradient(90deg, #ff3b3b, #ff7a18);
   border: none;
-  padding: 12px;
-  border-radius: 12px;
+  outline: none;
+  padding: 14px 24px;
+  border-radius: 16px;
   color: white;
-  font-weight: bold;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.5px;
   cursor: pointer;
+  box-shadow: 0 10px 25px rgba(255, 80, 80, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+/* HOVER */
+.pedido button:hover {
+  transform: translateY(-3px) scale(1.03);
+
+  box-shadow:
+    0 14px 30px rgba(255, 80, 80, 0.4),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+/* CLICK */
+.pedido button:active {
+  transform: scale(0.97);
 }
 
 /* ALERTA */
@@ -378,66 +533,106 @@ h1 {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
-.stock{
+.stock {
   margin: 0 10px 10px;
   color: #00ff95;
   font-weight: bold;
   font-size: 14px;
 }
 
+.stock-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-@media(max-width:768px){
+  margin: 10px;
+  gap: 10px;
+}
 
-  body{
+.stock-btn {
+  width: 32px;
+  height: 32px;
+
+  border: none;
+  border-radius: 25px;
+
+  background: #242833;
+  color: white;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: 0.25s;
+}
+
+.stock-btn:hover {
+  background: linear-gradient(90deg, #ff3b3b, #ff7a18);
+  transform: scale(1.08);
+}
+
+
+@media(max-width:768px) {
+
+  body {
     padding: 10px;
   }
 
-  h1{
+  h1 {
     font-size: 24px;
   }
 
-  .platos{
+  .platos {
     grid-template-columns: 1fr;
     gap: 18px;
   }
 
-  .card img{
+  .card img {
     height: 200px;
   }
 
-  .pedido{
+  .pedido {
     padding: 15px;
   }
 
-  .item{
+  .item {
     flex-direction: column;
     gap: 10px;
     align-items: flex-start;
   }
 
-  .item input{
+  .item input {
     width: 100%;
   }
 
-  .pedido button{
+  .pedido button {
     font-size: 14px;
   }
 
-  select{
+  select {
     width: 100%;
   }
 
 }
-@media(max-width:768px){
 
-  .categorias{
+@media(max-width:768px) {
+
+  .categorias {
     justify-content: flex-start;
   }
 
-  .categorias button{
+  .categorias button {
     min-width: 140px;
     font-size: 14px;
     padding: 12px;
+  }
+
+  .pedido button {
+    width: 100%;
+    min-width: unset;
+    padding: 13px;
+    font-size: 14px;
   }
 
 }
