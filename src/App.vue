@@ -10,6 +10,7 @@ const categoriaSeleccionada = ref("Comida Rápida");
 // Estado
 const mostrarAlerta = ref(false);
 const pedido = ref([]);
+const mostrarCarrito = ref(false);
 
 // 30 PLATOS MANUALES
 const platos = ref([
@@ -252,24 +253,55 @@ function generarFactura() {
       </div>
     </div>
 
-    <div class="pedido">
-      <h2>🔥 Pedido</h2>
+   <!-- BOTON CARRITO -->
+<div class="carrito-btn" @click="mostrarCarrito = !mostrarCarrito">
+  🛒
+  <span class="contador">
+    {{ pedido.length }}
+  </span>
+</div>
 
-      <p v-if="pedido.length === 0">No hay productos</p>
+<!-- PANEL DEL CARRITO -->
+<div class="carrito-panel" v-if="mostrarCarrito">
 
-      <div v-if="pedido.length > 0">
-        <div v-for="(p, i) in pedido" :key="i" class="item">
-          <span>{{ p.nombre }}</span>
-          <input type="number" :value="p.cantidad" min="1" @input="actualizarCantidad($event, p)" />
-          <span>${{ p.precio * p.cantidad }}</span>
-          <button @click="eliminar(i)">❌</button>
-        </div>
+  <h2>🔥 Tu Pedido</h2>
+
+  <p v-if="pedido.length === 0">
+    No hay productos
+  </p>
+
+  <div v-if="pedido.length > 0">
+
+    <div v-for="(p, i) in pedido" :key="i" class="item">
+
+      <div class="info">
+        <h4>{{ p.nombre }}</h4>
+        <p>${{ p.precio * p.cantidad }}</p>
       </div>
 
-      <h3>Total: ${{ total() }}</h3>
+      <input
+        type="number"
+        :value="p.cantidad"
+        min="1"
+        @input="actualizarCantidad($event, p)"
+      />
 
-      <button @click="generarFactura">🛒Finalizar compra</button>
+      <button @click="eliminar(i)">
+        ❌
+      </button>
+
     </div>
+
+    <h3 class="total">
+      Total: ${{ total() }}
+    </h3>
+
+    <button class="finalizar" @click="generarFactura">
+      Finalizar compra
+    </button>
+
+  </div>
+</div>
 
     <div v-if="mostrarAlerta" class="alerta">
       ⚠️ No hay productos en el pedido
@@ -570,6 +602,177 @@ h1 {
 .stock-btn:hover {
   background: linear-gradient(90deg, #ff3b3b, #ff7a18);
   transform: scale(1.08);
+}
+/* BOTON FLOTANTE */
+
+.carrito-btn{
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+
+  width: 70px;
+  height: 70px;
+
+  border-radius: 50%;
+
+  background: #ff3b3b;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 30px;
+
+  cursor: pointer;
+
+  box-shadow: 0 5px 20px rgba(0,0,0,.3);
+
+  z-index: 1000;
+}
+
+/* CONTADOR */
+
+.contador{
+  position: absolute;
+
+  top: -5px;
+  right: -5px;
+
+  background: white;
+  color: black;
+
+  width: 25px;
+  height: 25px;
+
+  border-radius: 50%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* PANEL */
+
+.carrito-panel{
+  position: fixed;
+
+  top: 0;
+  right: 0;
+
+  width: 350px;
+  height: 100vh;
+
+  background: #14171d;
+
+  padding: 20px;
+
+  overflow-y: auto;
+
+  z-index: 999;
+
+  box-shadow: -5px 0 20px rgba(0,0,0,.4);
+}
+
+.carrito-panel h2{
+  color: white;
+  margin-bottom: 20px;
+}
+
+/* ITEM */
+
+.item{
+  background: #1f242d;
+
+  margin-bottom: 15px;
+
+  padding: 15px;
+
+  border-radius: 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.info h4{
+  color: white;
+  margin: 0;
+}
+
+.info p{
+  color: #ff7a18;
+  margin: 5px 0 0;
+}
+
+.item input{
+  width: 60px;
+
+  padding: 5px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  text-align: center;
+}
+
+.item button{
+  background: crimson;
+
+  border: none;
+
+  padding: 8px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+/* TOTAL */
+
+.total{
+  color: white;
+
+  margin-top: 20px;
+}
+
+/* FINALIZAR */
+
+.finalizar{
+  width: 100%;
+
+  padding: 15px;
+
+  border: none;
+
+  border-radius: 15px;
+
+  background: linear-gradient(45deg,#ff3b3b,#ff7a18);
+
+  color: white;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  margin-top: 15px;
+}
+
+
+
+@media(max-width:500px){
+
+  .carrito-panel{
+    width: 100%;
+  }
+
 }
 
 
