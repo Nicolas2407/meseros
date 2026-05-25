@@ -378,9 +378,9 @@ function generarFactura() {
 
       <input v-model="nuevoProducto.ingredientes" placeholder="Ingredientes">
 
-      <input v-model="nuevoProducto.precio" type="number" placeholder="Precio">
+      <input v-model.number="nuevoProducto.precio" type="number" placeholder="Precio">
 
-      <input v-model="nuevoProducto.stock" type="number" placeholder="Stock">
+     <input v-model.number="nuevoProducto.stock" type="number" placeholder="Stock">
 
       <input v-model="nuevoProducto.imagen" placeholder="URL imagen">
 
@@ -392,7 +392,7 @@ function generarFactura() {
 
       </select>
 
-      <button @click="agregarProducto">
+      <button @click="agregarProducto()">
         Guardar Producto
       </button>
 
