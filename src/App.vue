@@ -2,6 +2,7 @@
 import { ref } from "vue";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import Swal from "sweetalert2";
 
 // Categorías
 const categorias = ["Comida Rápida", "Bebidas", "Postres", "Platos Fuertes"];
@@ -11,6 +12,7 @@ const categoriaSeleccionada = ref("Comida Rápida");
 const mostrarAlerta = ref(false);
 const pedido = ref([]);
 const mostrarCarrito = ref(false);
+const mostrarFormulario = ref(false);
 
 // 30 PLATOS MANUALES
 const platos = ref([
@@ -50,6 +52,133 @@ const platos = ref([
 ]);
 
 
+const nuevoProducto = ref({
+  nombre: "",
+  descripcion: "",
+  ingredientes: "",
+  precio: 0,
+  stock: 0,
+  categoria: "Comida Rápida",
+  imagen: ""
+});
+function agregarProducto() {
+
+  if (!nuevoProducto.value.nombre.trim()) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "Campo vacío",
+      text: "El campo Nombre está vacío",
+      confirmButtonColor: "#ff3b3b",
+      background: "#14171d",
+      color: "#fff"
+    });
+
+    return;
+  }
+
+  if (!nuevoProducto.value.descripcion.trim()) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "Campo vacío",
+      text: "El campo Descripción está vacío",
+      confirmButtonColor: "#ff3b3b",
+      background: "#14171d",
+      color: "#fff"
+    });
+
+    return;
+  }
+
+  if (!nuevoProducto.value.ingredientes.trim()) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "Campo vacío",
+      text: "El campo Ingredientes está vacío",
+      confirmButtonColor: "#ff3b3b",
+      background: "#14171d",
+      color: "#fff"
+    });
+
+    return;
+  }
+
+  if (!nuevoProducto.value.precio || nuevoProducto.value.precio <= 0) {
+
+    Swal.fire({
+      icon: "error",
+      title: "Precio inválido",
+      text: "Debes ingresar un precio válido",
+      confirmButtonColor: "#ff3b3b",
+      background: "#14171d",
+      color: "#fff"
+    });
+
+    return;
+  }
+
+  if (!nuevoProducto.value.stock || nuevoProducto.value.stock <= 0) {
+
+    Swal.fire({
+      icon: "error",
+      title: "Stock inválido",
+      text: "Debes ingresar un stock válido",
+      confirmButtonColor: "#ff3b3b",
+      background: "#14171d",
+      color: "#fff"
+    });
+
+    return;
+  }
+
+  if (!nuevoProducto.value.imagen.trim()) {
+
+    Swal.fire({
+      icon: "warning",
+      title: "Imagen faltante",
+      text: "Debes ingresar la URL de la imagen",
+      confirmButtonColor: "#ff3b3b",
+      background: "#14171d",
+      color: "#fff"
+    });
+
+    return;
+  }
+
+  // AGREGAR PRODUCTO
+
+  platos.value.push({
+    id: Date.now(),
+    ...nuevoProducto.value
+  });
+
+  // LIMPIAR
+
+  nuevoProducto.value = {
+    nombre: "",
+    descripcion: "",
+    ingredientes: "",
+    precio: 0,
+    stock: 0,
+    categoria: "Comida Rápida",
+    imagen: ""
+  };
+
+  mostrarFormulario.value = false;
+
+  // ALERTA BONITA
+
+  Swal.fire({
+    icon: "success",
+    title: "Producto agregado 🔥",
+    text: "El producto fue agregado correctamente",
+    confirmButtonColor: "#ff7a18",
+    background: "#14171d",
+    color: "#fff"
+  });
+}
 function platosFiltrados() {
   return platos.value.filter(p => p.categoria === categoriaSeleccionada.value);
 }
@@ -109,6 +238,13 @@ function total() {
   return pedido.value.reduce((sum, p) => sum + p.precio * (parseInt(p.cantidad) || 0), 0);
 }
 
+
+function moneda(valor){
+
+  return Number(valor).toLocaleString("de-DE");
+
+}
+
 // PDF
 function generarFactura() {
 
@@ -137,7 +273,7 @@ function generarFactura() {
   doc.text(" BRASA VIVA", 14, 20);
 
   doc.setFontSize(11);
-  doc.setTextColor(255,255,255);
+  doc.setTextColor(255, 255, 255);
 
   doc.text("Factura de compra", 14, 30);
 
@@ -153,8 +289,8 @@ function generarFactura() {
   const rows = pedido.value.map(p => [
     p.nombre,
     p.cantidad,
-    "$" + p.precio,
-    "$" + (p.precio * p.cantidad)
+    "$" + moneda(p.precio),
+    "$" + moneda(p.precio * p.cantidad)
   ]);
 
   autoTable(doc, {
@@ -174,16 +310,16 @@ function generarFactura() {
     },
 
     bodyStyles: {
-      fillColor: [245,245,245],
+      fillColor: [245, 245, 245],
       textColor: 30
     },
 
     alternateRowStyles: {
-      fillColor: [230,230,230]
+      fillColor: [230, 230, 230]
     },
 
     styles: {
-      fontSize: 11,
+      fontSize: 14,
       cellPadding: 4,
       halign: "center",
       valign: "middle"
@@ -197,10 +333,10 @@ function generarFactura() {
 
   doc.roundedRect(120, finalY - 8, 70, 15, 3, 3, "F");
 
-  doc.setFontSize(16);
-  doc.setTextColor(255,255,255);
+  doc.setFontSize(20);
+  doc.setTextColor(255, 255, 255);
 
-  doc.text("TOTAL: $" + total(), 128, finalY + 2);
+  doc.text("TOTAL: $" + moneda(total()), 128, finalY + 2);
 
   // MENSAJE FINAL
   doc.setFontSize(11);
@@ -224,12 +360,42 @@ function generarFactura() {
 <template>
   <div>
     <h1>🔥BRASA VIVA</h1>
-
     <div class="categorias">
       <button v-for="cat in categorias" :key="cat" @click="categoriaSeleccionada = cat"
         :class="{ activa: categoriaSeleccionada === cat }">
         {{ cat }}
       </button>
+    </div>
+        <button class="admin-btn" @click="mostrarFormulario = !mostrarFormulario">
+      ➕ Agregar Producto
+    </button>
+
+    <div v-if="mostrarFormulario" class="formulario">
+
+      <input v-model="nuevoProducto.nombre" placeholder="Nombre">
+
+      <input v-model="nuevoProducto.descripcion" placeholder="Descripción">
+
+      <input v-model="nuevoProducto.ingredientes" placeholder="Ingredientes">
+
+      <input v-model="nuevoProducto.precio" type="number" placeholder="Precio">
+
+      <input v-model="nuevoProducto.stock" type="number" placeholder="Stock">
+
+      <input v-model="nuevoProducto.imagen" placeholder="URL imagen">
+
+      <select v-model="nuevoProducto.categoria">
+
+        <option v-for="cat in categorias" :key="cat">
+          {{ cat }}
+        </option>
+
+      </select>
+
+      <button @click="agregarProducto">
+        Guardar Producto
+      </button>
+
     </div>
 
     <!-- 🔥 ARREGLO AQUÍ -->
@@ -239,7 +405,9 @@ function generarFactura() {
         <h3>{{ plato.nombre }}</h3>
         <p>{{ plato.descripcion }}</p>
         <small>{{ plato.ingredientes }}</small>
-        <p class="precio">${{ plato.precio }}</p>
+        <p class="precio">
+  ${{ moneda(plato.precio) }}
+</p>
         <div class="stock-control">
 
           <p class="stock">
@@ -249,59 +417,59 @@ function generarFactura() {
           <button class="stock-btn" @click="plato.stock++">+</button>
         </div>
         <button @click="agregar(plato)" :disabled="plato.stock <= 0">{{ plato.stock <= 0 ? "Agotado" : "Agregar"
-        }}</button>
+            }}</button>
       </div>
     </div>
 
-   <!-- BOTON CARRITO -->
-<div class="carrito-btn" @click="mostrarCarrito = !mostrarCarrito">
-  🛒
-  <span class="contador">
-    {{ pedido.length }}
-  </span>
-</div>
-
-<!-- PANEL DEL CARRITO -->
-<div class="carrito-panel" v-if="mostrarCarrito">
-
-  <h2>🔥 Tu Pedido</h2>
-
-  <p v-if="pedido.length === 0">
-    No hay productos
-  </p>
-
-  <div v-if="pedido.length > 0">
-
-    <div v-for="(p, i) in pedido" :key="i" class="item">
-
-      <div class="info">
-        <h4>{{ p.nombre }}</h4>
-        <p>${{ p.precio * p.cantidad }}</p>
-      </div>
-
-      <input
-        type="number"
-        :value="p.cantidad"
-        min="1"
-        @input="actualizarCantidad($event, p)"
-      />
-
-      <button @click="eliminar(i)">
-        ❌
-      </button>
-
+    <!-- BOTON CARRITO -->
+    <div class="carrito-btn" @click="mostrarCarrito = !mostrarCarrito">
+      🛒
+      <span class="contador">
+        {{ pedido.length }}
+      </span>
     </div>
 
-    <h3 class="total">
-      Total: ${{ total() }}
-    </h3>
+    <!-- PANEL DEL CARRITO -->
+    <div class="carrito-panel" v-if="mostrarCarrito">
+    <button class="volver-btn" @click="mostrarCarrito = false">
+  ← Volver
+</button>
 
-    <button class="finalizar" @click="generarFactura">
-      Finalizar compra
-    </button>
+      <h2>🔥 Tu Pedido</h2>
 
-  </div>
-</div>
+      <p v-if="pedido.length === 0">
+        No hay productos
+      </p>
+
+      <div v-if="pedido.length > 0">
+
+        <div v-for="(p, i) in pedido" :key="i" class="item">
+
+          <div class="info">
+            <h4>{{ p.nombre }}</h4>
+           <p>
+  ${{ moneda(p.precio * p.cantidad) }}
+</p>
+          </div>
+
+          <input type="number" :value="p.cantidad" min="1" @input="actualizarCantidad($event, p)" />
+
+          <button @click="eliminar(i)">
+            ❌
+          </button>
+
+        </div>
+
+        <h3 class="total">
+          Total: ${{ moneda(total()) }}
+        </h3>
+
+        <button class="finalizar" @click="generarFactura">
+          Finalizar compra
+        </button>
+
+      </div>
+    </div>
 
     <div v-if="mostrarAlerta" class="alerta">
       ⚠️ No hay productos en el pedido
@@ -454,6 +622,7 @@ h1 {
   transform: scale(1.05);
 }
 
+
 /* PEDIDO */
 .pedido {
   margin-top: 40px;
@@ -465,6 +634,26 @@ h1 {
 
 .pedido h2 {
   margin-bottom: 15px;
+}
+.volver-btn{
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.1);
+
+  color: white;
+
+  padding: 10px 15px;
+
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  margin-bottom: 20px;
+
+  transition: .3s;
+}
+
+.volver-btn:hover{
+  background: rgba(255,255,255,.08);
 }
 
 /* ITEM PEDIDO */
@@ -603,9 +792,10 @@ h1 {
   background: linear-gradient(90deg, #ff3b3b, #ff7a18);
   transform: scale(1.08);
 }
+
 /* BOTON FLOTANTE */
 
-.carrito-btn{
+.carrito-btn {
   position: fixed;
   bottom: 20px;
   right: 20px;
@@ -625,14 +815,14 @@ h1 {
 
   cursor: pointer;
 
-  box-shadow: 0 5px 20px rgba(0,0,0,.3);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, .3);
 
   z-index: 1000;
 }
 
 /* CONTADOR */
 
-.contador{
+.contador {
   position: absolute;
 
   top: -5px;
@@ -656,7 +846,7 @@ h1 {
 
 /* PANEL */
 
-.carrito-panel{
+.carrito-panel {
   position: fixed;
 
   top: 0;
@@ -673,17 +863,22 @@ h1 {
 
   z-index: 999;
 
-  box-shadow: -5px 0 20px rgba(0,0,0,.4);
+  box-shadow: -5px 0 20px rgba(0, 0, 0, .4);
 }
 
-.carrito-panel h2{
+.carrito-panel h2 {
   color: white;
   margin-bottom: 20px;
 }
 
-/* ITEM */
+.card button:disabled{
+  background: #555;
+  cursor: not-allowed;
+  opacity: .6;
+}
 
-.item{
+/* ITEM */
+.item {
   background: #1f242d;
 
   margin-bottom: 15px;
@@ -696,20 +891,53 @@ h1 {
   align-items: center;
   justify-content: space-between;
 
-  gap: 10px;
+  gap: 12px;
 }
 
-.info h4{
+.info {
+  flex: 1;
+}
+
+.item input {
+  width: 55px;
+  height: 40px;
+
+  border: none;
+  border-radius: 10px;
+
+  text-align: center;
+
+  font-size: 16px;
+}
+
+.item button {
+  width: 45px;
+  height: 45px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: crimson;
+
+  color: white;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+}
+
+.info h4 {
   color: white;
   margin: 0;
 }
 
-.info p{
+.info p {
   color: #ff7a18;
   margin: 5px 0 0;
 }
 
-.item input{
+.item input {
   width: 60px;
 
   padding: 5px;
@@ -721,7 +949,7 @@ h1 {
   text-align: center;
 }
 
-.item button{
+.item button {
   background: crimson;
 
   border: none;
@@ -735,7 +963,7 @@ h1 {
 
 /* TOTAL */
 
-.total{
+.total {
   color: white;
 
   margin-top: 20px;
@@ -743,7 +971,7 @@ h1 {
 
 /* FINALIZAR */
 
-.finalizar{
+.finalizar {
   width: 100%;
 
   padding: 15px;
@@ -752,7 +980,7 @@ h1 {
 
   border-radius: 15px;
 
-  background: linear-gradient(45deg,#ff3b3b,#ff7a18);
+  background: linear-gradient(45deg, #ff3b3b, #ff7a18);
 
   color: white;
 
@@ -765,11 +993,161 @@ h1 {
   margin-top: 15px;
 }
 
+/* BOTON ADMIN */
+.admin-btn{
+
+  display: flex;
+
+  margin-left: auto;
+  margin-bottom: 25px;
+
+  padding: 14px 22px;
+
+  border: none;
+
+  border-radius: 16px;
+
+  background: linear-gradient(90deg,#ff3b3b,#ff7a18);
+
+  color: white;
+
+  font-size: 15px;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: .3s;
+
+  box-shadow:
+  0 8px 20px rgba(255,80,80,.25);
+}
+
+/* HOVER */
+
+.admin-btn:hover{
+
+  transform: translateY(-3px);
+
+  box-shadow:
+  0 12px 25px rgba(255,80,80,.35);
+}
+
+/* FORMULARIO */
+
+.formulario{
+
+  width: 100%;
+  max-width: 700px;
+
+  margin: 0 auto 35px;
+
+  padding: 25px;
+
+  background: linear-gradient(145deg,#1c1f26,#14171d);
+
+  border-radius: 22px;
+
+  border: 1px solid rgba(255,255,255,.05);
+
+  box-shadow: 0 10px 30px rgba(0,0,0,.4);
+
+  display: grid;
+
+  grid-template-columns: repeat(2,1fr);
+
+  gap: 18px;
+}
+
+/* INPUTS */
+
+.formulario input,
+.formulario select{
+
+  width: 100%;
+
+  padding: 14px;
+
+  border: none;
+
+  border-radius: 14px;
+
+  background: #0f1115;
+
+  color: white;
+
+  font-size: 14px;
+
+  outline: none;
+
+  transition: .25s;
+}
+
+/* FOCUS */
+
+.formulario input:focus,
+.formulario select:focus{
+
+  box-shadow: 0 0 0 2px #ff3b3b;
+}
+
+/* PLACEHOLDER */
+
+.formulario input::placeholder{
+  color: #777;
+}
+
+/* BOTON GUARDAR */
+
+.formulario button{
+
+  grid-column: span 2;
+
+  padding: 15px;
+
+  border: none;
+
+  border-radius: 15px;
+
+  background: linear-gradient(90deg,#ff3b3b,#ff7a18);
+
+  color: white;
+
+  font-size: 15px;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  transition: .3s;
+}
+
+.formulario button:hover{
+  transform: scale(1.02);
+}
+
+/* RESPONSIVE */
+
+@media(max-width:700px){
+
+  .formulario{
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .formulario button{
+    grid-column: span 1;
+  }
+
+  .admin-btn{
+    width: 100%;
+  }
+
+}
 
 
-@media(max-width:500px){
 
-  .carrito-panel{
+@media(max-width:500px) {
+
+  .carrito-panel {
     width: 100%;
   }
 
@@ -835,6 +1213,26 @@ h1 {
     width: 100%;
     min-width: unset;
     padding: 13px;
+    font-size: 14px;
+  }
+
+}
+
+@media(max-width:500px) {
+
+  .carrito-panel {
+    width: 100%;
+  }
+
+  .item {
+    align-items: center;
+  }
+
+  .info h4 {
+    font-size: 16px;
+  }
+
+  .info p {
     font-size: 14px;
   }
 
