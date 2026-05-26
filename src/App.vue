@@ -2,8 +2,6 @@
 import { ref } from "vue";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import Swal from "sweetalert2";
-
 // Categorías
 const categorias = ["Comida Rápida", "Bebidas", "Postres", "Platos Fuertes"];
 const categoriaSeleccionada = ref("Comida Rápida");
@@ -63,121 +61,13 @@ const nuevoProducto = ref({
 });
 function agregarProducto() {
 
-  if (!nuevoProducto.value.nombre.trim()) {
-
-    Swal.fire({
-      icon: "warning",
-      title: "Campo vacío",
-      text: "El campo Nombre está vacío",
-      confirmButtonColor: "#ff3b3b",
-      background: "#14171d",
-      color: "#fff"
-    });
-
-    return;
-  }
-
-  if (!nuevoProducto.value.descripcion.trim()) {
-
-    Swal.fire({
-      icon: "warning",
-      title: "Campo vacío",
-      text: "El campo Descripción está vacío",
-      confirmButtonColor: "#ff3b3b",
-      background: "#14171d",
-      color: "#fff"
-    });
-
-    return;
-  }
-
-  if (!nuevoProducto.value.ingredientes.trim()) {
-
-    Swal.fire({
-      icon: "warning",
-      title: "Campo vacío",
-      text: "El campo Ingredientes está vacío",
-      confirmButtonColor: "#ff3b3b",
-      background: "#14171d",
-      color: "#fff"
-    });
-
-    return;
-  }
-
-  if (!nuevoProducto.value.precio || nuevoProducto.value.precio <= 0) {
-
-    Swal.fire({
-      icon: "error",
-      title: "Precio inválido",
-      text: "Debes ingresar un precio válido",
-      confirmButtonColor: "#ff3b3b",
-      background: "#14171d",
-      color: "#fff"
-    });
-
-    return;
-  }
-
-  if (!nuevoProducto.value.stock || nuevoProducto.value.stock <= 0) {
-
-    Swal.fire({
-      icon: "error",
-      title: "Stock inválido",
-      text: "Debes ingresar un stock válido",
-      confirmButtonColor: "#ff3b3b",
-      background: "#14171d",
-      color: "#fff"
-    });
-
-    return;
-  }
-
-  if (!nuevoProducto.value.imagen.trim()) {
-
-    Swal.fire({
-      icon: "warning",
-      title: "Imagen faltante",
-      text: "Debes ingresar la URL de la imagen",
-      confirmButtonColor: "#ff3b3b",
-      background: "#14171d",
-      color: "#fff"
-    });
-
-    return;
-  }
-
-  // AGREGAR PRODUCTO
-
-  platos.value.push({
-    id: Date.now(),
-    ...nuevoProducto.value
-  });
-
-  // LIMPIAR
-
-  nuevoProducto.value = {
-    nombre: "",
-    descripcion: "",
-    ingredientes: "",
-    precio: 0,
-    stock: 0,
-    categoria: "Comida Rápida",
-    imagen: ""
-  };
-
-  mostrarFormulario.value = false;
-
-  // ALERTA BONITA
-
-  Swal.fire({
-    icon: "success",
-    title: "Producto agregado 🔥",
-    text: "El producto fue agregado correctamente",
-    confirmButtonColor: "#ff7a18",
-    background: "#14171d",
-    color: "#fff"
-  });
+  alert("El campo Nombre está vacío");
+  alert("El campo Descripción está vacío");
+  alert("El campo Ingredientes está vacío");
+  alert("Debes ingresar un precio válido");
+  alert("Debes ingresar un stock válido");
+  alert("Debes ingresar la URL de la imagen");
+  alert("Producto agregado correctamente");
 }
 function platosFiltrados() {
   return platos.value.filter(p => p.categoria === categoriaSeleccionada.value);
