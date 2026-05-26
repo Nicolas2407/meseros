@@ -11,6 +11,8 @@ const mostrarAlerta = ref(false);
 const pedido = ref([]);
 const mostrarCarrito = ref(false);
 const mostrarFormulario = ref(false);
+const alerta = ref("");
+const mostrarNotificacion = ref(false);
 
 // 30 PLATOS MANUALES
 const platos = ref([
@@ -59,16 +61,86 @@ const nuevoProducto = ref({
   categoria: "Comida Rápida",
   imagen: ""
 });
+function mostrarMensaje(texto) {
+
+  alerta.value = texto;
+
+  mostrarNotificacion.value = false;
+
+  setTimeout(() => {
+
+    mostrarNotificacion.value = true;
+
+  }, 10);
+
+  setTimeout(() => {
+
+    mostrarNotificacion.value = false;
+
+  }, 3000);
+
+}
 function agregarProducto() {
 
-  alert("El campo Nombre está vacío");
-  alert("El campo Descripción está vacío");
-  alert("El campo Ingredientes está vacío");
-  alert("Debes ingresar un precio válido");
-  alert("Debes ingresar un stock válido");
-  alert("Debes ingresar la URL de la imagen");
-  alert("Producto agregado correctamente");
+   if (nuevoProducto.value.nombre.trim() === "") {
+    mostrarMensaje("El campo Nombre está vacío");
+    return;
+  }
+
+  if (nuevoProducto.value.descripcion.trim() === "") {
+    mostrarMensaje("El campo Descripción está vacío");
+    return;
+  }
+
+  if (nuevoProducto.value.ingredientes.trim() === "") {
+    mostrarMensaje("El campo Ingredientes está vacío");
+    return;
+  }
+
+  if (nuevoProducto.value.precio <= 0) {
+    mostrarMensaje("Debes ingresar un precio válido");
+    return;
+  }
+
+  if (nuevoProducto.value.stock <= 0) {
+    mostrarMensaje("Debes ingresar un stock válido");
+    return;
+  }
+
+  if (nuevoProducto.value.imagen.trim() === "") {
+    mostrarMensaje("Debes ingresar la URL de la imagen");
+    return;
+  }
+
+  // AGREGAR PRODUCTO A LAS CARDS
+  platos.value.push({
+    id: Date.now(),
+    nombre: nuevoProducto.value.nombre,
+    descripcion: nuevoProducto.value.descripcion,
+    ingredientes: nuevoProducto.value.ingredientes,
+    precio: nuevoProducto.value.precio,
+    stock: nuevoProducto.value.stock,
+    categoria: nuevoProducto.value.categoria,
+    imagen: nuevoProducto.value.imagen
+  });
+
+  // LIMPIAR FORMULARIO
+  nuevoProducto.value = {
+    nombre: "",
+    descripcion: "",
+    ingredientes: "",
+    precio: 0,
+    stock: 0,
+    categoria: "Comida Rápida",
+    imagen: ""
+  };
+
+  // CERRAR FORMULARIO
+  mostrarFormulario.value = false;
+
+ mostrarMensaje("Producto agregado correctamente");
 }
+
 function platosFiltrados() {
   return platos.value.filter(p => p.categoria === categoriaSeleccionada.value);
 }
@@ -76,7 +148,7 @@ function platosFiltrados() {
 
 function agregar(plato) {
   if (plato.stock <= 0) {
-    alert("No quedan más productos disponibles");
+    mostrarMensaje("No quedan más productos disponibles");
     return;
   }
   let existe = pedido.value.find(p => p.id === plato.id);
@@ -110,7 +182,7 @@ function actualizarCantidad(event, producto) {
   // si quiere aumentar más de lo disponible
   if (diferencia > platoOriginal.stock) {
 
-    alert("No hay suficiente stock disponible");
+   mostrarMensaje("No hay suficiente stock disponible");
 
     event.target.value = producto.cantidad;
 
@@ -364,6 +436,10 @@ function generarFactura() {
     <div v-if="mostrarAlerta" class="alerta">
       ⚠️ No hay productos en el pedido
     </div>
+
+    <div v-if="mostrarNotificacion" class="notificacion">
+  {{ alerta }}
+</div>
   </div>
 </template>
 
@@ -1012,6 +1088,53 @@ h1 {
 
 .formulario button:hover{
   transform: scale(1.02);
+}
+
+/* ALERTA BONITA */
+
+.notificacion{
+
+  position: fixed;
+
+  top: 20px;
+  right: 20px;
+
+  background: linear-gradient(90deg,#ff3b3b,#ff7a18);
+
+  color: white;
+
+  padding: 16px 22px;
+
+  border-radius: 16px;
+
+  font-weight: bold;
+
+  font-size: 15px;
+
+  box-shadow:
+  0 10px 25px rgba(0,0,0,.35);
+
+  z-index: 9999;
+
+  animation: aparecer .3s ease;
+
+  max-width: 320px;
+}
+
+/* ANIMACION */
+
+@keyframes aparecer{
+
+  from{
+    opacity: 0;
+    transform: translateY(-20px) scale(.9);
+  }
+
+  to{
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
 }
 
 /* RESPONSIVE */
