@@ -82,7 +82,7 @@ function mostrarMensaje(texto) {
 }
 function agregarProducto() {
 
-   if (nuevoProducto.value.nombre.trim() === "") {
+  if (nuevoProducto.value.nombre.trim() === "") {
     mostrarMensaje("El campo Nombre está vacío");
     return;
   }
@@ -138,7 +138,7 @@ function agregarProducto() {
   // CERRAR FORMULARIO
   mostrarFormulario.value = false;
 
- mostrarMensaje("Producto agregado correctamente");
+  mostrarMensaje("Producto agregado correctamente");
 }
 
 function platosFiltrados() {
@@ -182,7 +182,7 @@ function actualizarCantidad(event, producto) {
   // si quiere aumentar más de lo disponible
   if (diferencia > platoOriginal.stock) {
 
-   mostrarMensaje("No hay suficiente stock disponible");
+    mostrarMensaje("No hay suficiente stock disponible");
 
     event.target.value = producto.cantidad;
 
@@ -201,7 +201,7 @@ function total() {
 }
 
 
-function moneda(valor){
+function moneda(valor) {
 
   return Number(valor).toLocaleString("de-DE");
 
@@ -328,11 +328,14 @@ function generarFactura() {
         {{ cat }}
       </button>
     </div>
-        <button class="admin-btn" @click="mostrarFormulario = !mostrarFormulario">
+    <button class="admin-btn" @click="mostrarFormulario = !mostrarFormulario">
       ➕ Agregar Producto
     </button>
 
     <div v-if="mostrarFormulario" class="formulario">
+      <h2 class="titulo-formulario">
+        🍔 Nuevo Producto
+      </h2>
 
       <input v-model="nuevoProducto.nombre" placeholder="Nombre">
 
@@ -342,7 +345,7 @@ function generarFactura() {
 
       <input v-model.number="nuevoProducto.precio" type="number" placeholder="Precio">
 
-     <input v-model.number="nuevoProducto.stock" type="number" placeholder="Stock">
+      <input v-model.number="nuevoProducto.stock" type="number" placeholder="Stock">
 
       <input v-model="nuevoProducto.imagen" placeholder="URL imagen">
 
@@ -368,8 +371,8 @@ function generarFactura() {
         <p>{{ plato.descripcion }}</p>
         <small>{{ plato.ingredientes }}</small>
         <p class="precio">
-  ${{ moneda(plato.precio) }}
-</p>
+          ${{ moneda(plato.precio) }}
+        </p>
         <div class="stock-control">
 
           <p class="stock">
@@ -379,12 +382,12 @@ function generarFactura() {
           <button class="stock-btn" @click="plato.stock++">+</button>
         </div>
         <button @click="agregar(plato)" :disabled="plato.stock <= 0">{{ plato.stock <= 0 ? "Agotado" : "Agregar"
-            }}</button>
+        }}</button>
       </div>
     </div>
 
     <!-- BOTON CARRITO -->
-    <div class="carrito-btn" @click="mostrarCarrito = !mostrarCarrito">
+    <div v-if="!mostrarCarrito" class="carrito-btn" @click="mostrarCarrito = true">
       🛒
       <span class="contador">
         {{ pedido.length }}
@@ -393,9 +396,9 @@ function generarFactura() {
 
     <!-- PANEL DEL CARRITO -->
     <div class="carrito-panel" v-if="mostrarCarrito">
-    <button class="volver-btn" @click="mostrarCarrito = false">
-  ← Volver
-</button>
+      <button class="volver-btn" @click="mostrarCarrito = false">
+        ← Volver
+      </button>
 
       <h2>🔥 Tu Pedido</h2>
 
@@ -409,12 +412,13 @@ function generarFactura() {
 
           <div class="info">
             <h4>{{ p.nombre }}</h4>
-           <p>
-  ${{ moneda(p.precio * p.cantidad) }}
-</p>
+            <p>
+              ${{ moneda(p.precio * p.cantidad) }}
+            </p>
           </div>
 
-          <input type="number" :value="p.cantidad" min="1" @input="actualizarCantidad($event, p)" />
+          <input class="cantidad-input" type="number" :value="p.cantidad" min="1"
+            @input="actualizarCantidad($event, p)" />
 
           <button @click="eliminar(i)">
             ❌
@@ -438,8 +442,8 @@ function generarFactura() {
     </div>
 
     <div v-if="mostrarNotificacion" class="notificacion">
-  {{ alerta }}
-</div>
+      {{ alerta }}
+    </div>
   </div>
 </template>
 
@@ -525,6 +529,7 @@ h1 {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 22px;
+  margin-top: 50px;
 }
 
 /* CARD PRODUCTO */
@@ -601,9 +606,10 @@ h1 {
 .pedido h2 {
   margin-bottom: 15px;
 }
-.volver-btn{
+
+.volver-btn {
   background: transparent;
-  border: 1px solid rgba(255,255,255,.1);
+  border: 1px solid rgba(255, 255, 255, .1);
 
   color: white;
 
@@ -618,20 +624,28 @@ h1 {
   transition: .3s;
 }
 
-.volver-btn:hover{
-  background: rgba(255,255,255,.08);
+.volver-btn:hover {
+  background: rgba(255, 255, 255, .08);
 }
 
 /* ITEM PEDIDO */
 .item {
+
+  background: #1f242d;
+
+  padding: 16px;
+
+  border-radius: 18px;
+
+  margin-bottom: 15px;
+
   display: flex;
+
   justify-content: space-between;
+
   align-items: center;
-  gap: 15px;
-  background: #0f1115;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 10px;
+
+  gap: 12px;
 }
 
 .item input {
@@ -639,6 +653,39 @@ h1 {
   text-align: center;
   border-radius: 5px;
   border: none;
+}
+
+.titulo-formulario {
+  grid-column: span 2;
+
+  text-align: center;
+
+  margin: 0 0 15px 0;
+
+  font-size: 28px;
+
+  color: white;
+}
+
+.cantidad-input {
+
+  width: 65px !important;
+
+  height: 45px;
+
+  background: #363739;
+
+  color: white;
+
+  border: none;
+
+  border-radius: 12px;
+
+  text-align: center;
+
+  font-size: 18px;
+
+  font-weight: bold;
 }
 
 /* BOTÓN ELIMINAR */
@@ -830,6 +877,7 @@ h1 {
   z-index: 999;
 
   box-shadow: -5px 0 20px rgba(0, 0, 0, .4);
+  box-sizing: border-box;
 }
 
 .carrito-panel h2 {
@@ -837,7 +885,7 @@ h1 {
   margin-bottom: 20px;
 }
 
-.card button:disabled{
+.card button:disabled {
   background: #555;
   cursor: not-allowed;
   opacity: .6;
@@ -960,7 +1008,7 @@ h1 {
 }
 
 /* BOTON ADMIN */
-.admin-btn{
+.admin-btn {
 
   display: flex;
 
@@ -973,7 +1021,7 @@ h1 {
 
   border-radius: 16px;
 
-  background: linear-gradient(90deg,#ff3b3b,#ff7a18);
+  background: linear-gradient(90deg, #ff3b3b, #ff7a18);
 
   color: white;
 
@@ -985,49 +1033,48 @@ h1 {
   transition: .3s;
 
   box-shadow:
-  0 8px 20px rgba(255,80,80,.25);
+    0 8px 20px rgba(255, 80, 80, .25);
 }
 
 /* HOVER */
 
-.admin-btn:hover{
+.admin-btn:hover {
 
   transform: translateY(-3px);
 
   box-shadow:
-  0 12px 25px rgba(255,80,80,.35);
+    0 12px 25px rgba(255, 80, 80, .35);
 }
 
 /* FORMULARIO */
 
-.formulario{
-
+.formulario {
   width: 100%;
-  max-width: 700px;
+  max-width: 900px;
 
-  margin: 0 auto 35px;
+  margin: 30px auto 70px auto;
 
-  padding: 25px;
+  padding: 35px;
 
-  background: linear-gradient(145deg,#1c1f26,#14171d);
+  background: linear-gradient(145deg, #1c1f26, #14171d);
 
-  border-radius: 22px;
+  border-radius: 28px;
 
-  border: 1px solid rgba(255,255,255,.05);
+  border: 1px solid rgba(255, 255, 255, .05);
 
-  box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, .45);
 
   display: grid;
+  grid-template-columns: repeat(2, 1fr);
 
-  grid-template-columns: repeat(2,1fr);
-
-  gap: 18px;
+  gap: 22px;
 }
 
 /* INPUTS */
 
 .formulario input,
-.formulario select{
+.formulario select {
 
   width: 100%;
 
@@ -1051,20 +1098,20 @@ h1 {
 /* FOCUS */
 
 .formulario input:focus,
-.formulario select:focus{
+.formulario select:focus {
 
   box-shadow: 0 0 0 2px #ff3b3b;
 }
 
 /* PLACEHOLDER */
 
-.formulario input::placeholder{
+.formulario input::placeholder {
   color: #777;
 }
 
 /* BOTON GUARDAR */
 
-.formulario button{
+.formulario button {
 
   grid-column: span 2;
 
@@ -1074,7 +1121,7 @@ h1 {
 
   border-radius: 15px;
 
-  background: linear-gradient(90deg,#ff3b3b,#ff7a18);
+  background: linear-gradient(90deg, #ff3b3b, #ff7a18);
 
   color: white;
 
@@ -1086,20 +1133,20 @@ h1 {
   transition: .3s;
 }
 
-.formulario button:hover{
+.formulario button:hover {
   transform: scale(1.02);
 }
 
 /* ALERTA BONITA */
 
-.notificacion{
+.notificacion {
 
   position: fixed;
 
   top: 20px;
   right: 20px;
 
-  background: linear-gradient(90deg,#ff3b3b,#ff7a18);
+  background: linear-gradient(90deg, #ff3b3b, #ff7a18);
 
   color: white;
 
@@ -1112,7 +1159,7 @@ h1 {
   font-size: 15px;
 
   box-shadow:
-  0 10px 25px rgba(0,0,0,.35);
+    0 10px 25px rgba(0, 0, 0, .35);
 
   z-index: 9999;
 
@@ -1123,14 +1170,14 @@ h1 {
 
 /* ANIMACION */
 
-@keyframes aparecer{
+@keyframes aparecer {
 
-  from{
+  from {
     opacity: 0;
     transform: translateY(-20px) scale(.9);
   }
 
-  to{
+  to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
@@ -1139,19 +1186,28 @@ h1 {
 
 /* RESPONSIVE */
 
-@media(max-width:700px){
+@media(max-width:700px) {
 
-  .formulario{
+  .formulario {
     grid-template-columns: 1fr;
     padding: 18px;
   }
 
-  .formulario button{
+  .formulario button {
     grid-column: span 1;
   }
 
-  .admin-btn{
+  .admin-btn {
     width: 100%;
+  }
+
+  .titulo-formulario {
+    grid-column: span 1;
+    font-size: 22px;
+  }
+
+  .formulario {
+    margin-bottom: 50px;
   }
 
 }
@@ -1162,6 +1218,8 @@ h1 {
 
   .carrito-panel {
     width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
   }
 
 }
@@ -1190,15 +1248,7 @@ h1 {
     padding: 15px;
   }
 
-  .item {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
 
-  .item input {
-    width: 100%;
-  }
 
   .pedido button {
     font-size: 14px;
@@ -1206,6 +1256,15 @@ h1 {
 
   select {
     width: 100%;
+  }
+
+}
+
+@media(max-width:500px) {
+
+  .carrito-panel {
+    width: 100%;
+    padding: 15px;
   }
 
 }
@@ -1247,6 +1306,46 @@ h1 {
 
   .info p {
     font-size: 14px;
+  }
+
+}
+
+@media(max-width:500px) {
+
+  .carrito-panel {
+
+    width: 100%;
+
+    padding: 15px;
+
+    box-sizing: border-box;
+  }
+
+  .item {
+
+    flex-direction: row;
+
+    align-items: center;
+  }
+
+  .info {
+
+    flex: 1;
+  }
+
+  .cantidad-input {
+
+    width: 60px !important;
+  }
+
+  .finalizar {
+
+    width: 100%;
+  }
+
+  .total {
+
+    font-size: 22px;
   }
 
 }
