@@ -448,6 +448,12 @@ function generarFactura() {
 </template>
 
 <style>
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 body {
   background: radial-gradient(circle at top, #151821, #0f1115);
   color: white;
@@ -648,6 +654,7 @@ h1 {
 
   gap: 12px;
 }
+
 
 .item input {
   width: 50px;
@@ -1200,6 +1207,8 @@ h1 {
 
   .admin-btn {
     width: 100%;
+    margin: 0 0 25px 0;
+    box-sizing: border-box;
   }
 
   .titulo-formulario {
@@ -1218,7 +1227,10 @@ h1 {
 @media(max-width:500px) {
 
   .carrito-panel {
-    width: 100%;
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100dvh;
     padding: 15px;
     box-sizing: border-box;
   }
@@ -1264,8 +1276,8 @@ h1 {
 @media(max-width:500px) {
 
   .carrito-panel {
-    width: 100%;
-    padding: 15px;
+    /* width: 100%;
+    padding: 15px; */
   }
 
 }
@@ -1294,7 +1306,7 @@ h1 {
 @media(max-width:500px) {
 
   .carrito-panel {
-    width: 100%;
+    /* width: 100%; */
   }
 
   .item {
@@ -1315,11 +1327,11 @@ h1 {
 
   .carrito-panel {
 
-    width: 100%;
+    /* width: 100%;
 
     padding: 15px;
 
-    box-sizing: border-box;
+    box-sizing: border-box; */
   }
 
   .item {
